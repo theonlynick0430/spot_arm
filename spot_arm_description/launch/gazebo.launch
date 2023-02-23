@@ -1,11 +1,25 @@
 <launch>
-  <param command="$(find xacro)/xacro $(find spot_arm_description)/urdf/spot_arm.xacro" name="robot_description"/>
-  <node args="-param robot_description -urdf -model spot_arm" name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"/>
+  <arg name="paused" default="false"/>
+  <arg name="gui" default="true"/>
+
+  <!-- startup simulated world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="paused" value="false"/>
-    <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="true"/>
-    <arg name="headless" value="false"/>
-    <arg name="debug" value="false"/>
+    <arg name="world_name" default="worlds/empty.world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
   </include>
+
+  <!-- send robot urdf to param server -->
+  <param command="$(find xacro)/xacro $(find spot_arm_description)/urdf/spot_arm.xacro" name="robot_description"/>
+
+  <!-- push robot_description to factory and spawn robot in gazebo at the origin, change x,y,z arguments to spawn in a different position -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model spot_arm -x 0 -y 0 -z 0"
+    respawn="false" output="screen" />
+
+    <!-- load ros controllers -->
+  <include file="$(find spot_arm_description)/launch/controller.launch"/>
+
+  <node name="robot_state_publisher" output="screen" pkg="robot_state_publisher" respawn="false" type="robot_state_publisher">
+    <remap from="/joint_states" to="/spot_arm/joint_states"/>
+  </node>
 </launch>

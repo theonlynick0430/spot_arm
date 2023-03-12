@@ -1,0 +1,35 @@
+spot_arm:
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  # Position Controllers --------------------------------------
+  arm_joint1_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: arm_joint1
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  arm_joint2_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: arm_joint2
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  arm_joint3_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: arm_joint3
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  arm_joint4_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: arm_joint4
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  arm_joint5_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: arm_joint5
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  arm_joint6_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: arm_joint6
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  arm_gripper_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: arm_gripper
+    pid: {p: 100.0, i: 0.01, d: 10.0}

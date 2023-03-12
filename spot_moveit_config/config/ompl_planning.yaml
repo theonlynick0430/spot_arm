@@ -145,7 +145,7 @@ spot_arm:
     - LazyPRMstar
     - SPARS
     - SPARStwo
-  projection_evaluator: joints(Rev9,Rev8)
+  projection_evaluator: joints(arm_joint1,arm_joint2)
   longest_valid_segment_fraction: 0.005
 hand:
   planner_configs:
@@ -172,5 +172,5 @@ hand:
     - LazyPRMstar
     - SPARS
     - SPARStwo
-  projection_evaluator: joints(Rev6,Rev7)
+  projection_evaluator: joints(arm_joint6,arm_gripper)
   longest_valid_segment_fraction: 0.005

@@ -14,9 +14,9 @@ spot_arm:
       - arm_joint6
     gains:
       arm_joint1:
-        p: 100
-        d: 1
-        i: 1
+        p: 500
+        d: 50
+        i: 5
         i_clamp: 1
       arm_joint2:
         p: 100

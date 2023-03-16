@@ -73,16 +73,16 @@ def all_close(goal, actual, tolerance):
   return True
 
 
-class SpotArmMoveGroupPythonInteface(object):
+class MoveGroupPythonInteface(object):
   """SpotArmMoveGroupPythonInteface"""
   def __init__(self):
-    super(SpotArmMoveGroupPythonInteface, self).__init__()
+    super(MoveGroupPythonInteface, self).__init__()
 
     ## BEGIN_SUB_TUTORIAL setup
     ##
     ## First initialize `moveit_commander`_ and a `rospy`_ node:
     moveit_commander.roscpp_initialize(sys.argv)
-    rospy.init_node('spot_arm_move_group_python_interface', anonymous=True)
+    rospy.init_node('move_group_python_interface', anonymous=True)
 
     ## Instantiate a `RobotCommander`_ object. Provides information such as the robot's
     ## kinematic model and the robot's current joint states
@@ -144,25 +144,22 @@ class SpotArmMoveGroupPythonInteface(object):
     self.group_names = group_names
 
 
-  def go_to_joint_state(self):
-    ## BEGIN_SUB_TUTORIAL plan_to_joint_state
+  def get_joint_states(self):
+    return self.move_group.get_current_joint_values()
+  
+
+  def get_ee_pose(self):
+    return self.move_group.get_current_pose().pose
+
+
+  def go_to_joint_states(self, joint_goals):
+    ## BEGIN_SUB_TUTORIAL plan_to_joint_states
     ##
     ## Planning to a Joint Goal
     ## ^^^^^^^^^^^^^^^^^^^^^^^^
-    ## The Panda's zero configuration is at a `singularity <https://www.quora.com/Robotics-What-is-meant-by-kinematic-singularity>`_ so the first
-    ## thing we want to do is move it to a slightly better configuration.
-    # We can get the joint values from the group and adjust some of the values:
-    joint_goal = self.move_group.get_current_joint_values()
-    joint_goal[0] = 2.617994
-    joint_goal[1] = 0
-    joint_goal[2] = 0
-    joint_goal[3] = 0
-    joint_goal[4] = 0
-    joint_goal[5] = 0
-
     # The go command can be called with joint values, poses, or without any
     # parameters if you have already set the pose or joint target for the group
-    self.move_group.go(joint_goal, wait=True)
+    self.move_group.go(joint_goals, wait=True)
 
     # Calling ``stop()`` ensures that there is no residual movement
     self.move_group.stop()
@@ -171,76 +168,48 @@ class SpotArmMoveGroupPythonInteface(object):
 
     # For testing:
     current_joints = self.move_group.get_current_joint_values()
-    return all_close(joint_goal, current_joints, 0.01)
+    return all_close(joint_goals, current_joints, 0.01)
 
 
-  def go_to_pose_goal(self):
+  def plan_path_to_ee_pose(self, ee_pose_goal):
     ## BEGIN_SUB_TUTORIAL plan_to_pose
     ##
     ## Planning to a Pose Goal
     ## ^^^^^^^^^^^^^^^^^^^^^^^
     ## We can plan a motion for this group to a desired pose for the
     ## end-effector:
-    pose_goal = geometry_msgs.msg.Pose()
-    pose_goal.orientation.w = 1.0
-    pose_goal.position.x = 0.4
-    pose_goal.position.y = 0.1
-    pose_goal.position.z = 0.4
+    self.move_group.set_pose_target(ee_pose_goal)
 
-    self.move_group.set_pose_target(pose_goal)
+    ## Now, we call the planner to compute the plan.
+    return self.move_group.plan()
+  
+    ## END_SUB_TUTORIAL
 
-    ## Now, we call the planner to compute the plan and execute it.
-    plan = self.move_group.go(wait=True)
+
+  def execute_plan(self, plan, ee_pose_goal):
+    ## BEGIN_SUB_TUTORIAL execute_plan
+    ##
+    ## Executing a Plan
+    ## ^^^^^^^^^^^^^^^^
+    ## Use execute if you would like the robot to follow
+    ## the plan that has already been computed:
+    self.move_group.execute(plan, wait=True)
+
     # Calling `stop()` ensures that there is no residual movement
     self.move_group.stop()
     # It is always good to clear your targets after planning with poses.
     # Note: there is no equivalent function for clear_joint_value_targets()
     self.move_group.clear_pose_targets()
 
-    ## END_SUB_TUTORIAL
+    ## **Note:** The robot's current joint state must be within some tolerance of the
+    ## first waypoint in the `RobotTrajectory`_ or ``execute()`` will fail
 
     # For testing:
     # Note that since this section of code will not be included in the tutorials
     # we use the class variable rather than the copied state variable
     current_pose = self.move_group.get_current_pose().pose
-    return all_close(pose_goal, current_pose, 0.01)
-
-
-  def plan_cartesian_path(self, scale=1):
-    ## BEGIN_SUB_TUTORIAL plan_cartesian_path
-    ##
-    ## Cartesian Paths
-    ## ^^^^^^^^^^^^^^^
-    ## You can plan a Cartesian path directly by specifying a list of waypoints
-    ## for the end-effector to go through. If executing  interactively in a
-    ## Python shell, set scale = 1.0.
-    ##
-    waypoints = []
-
-    wpose = self.move_group.get_current_pose().pose
-    wpose.position.z -= scale * 0.1  # First move up (z)
-    wpose.position.y += scale * 0.2  # and sideways (y)
-    waypoints.append(copy.deepcopy(wpose))
-
-    wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
-    waypoints.append(copy.deepcopy(wpose))
-
-    wpose.position.y -= scale * 0.1  # Third move sideways (y)
-    waypoints.append(copy.deepcopy(wpose))
-
-    # We want the Cartesian path to be interpolated at a resolution of 1 cm
-    # which is why we will specify 0.01 as the eef_step in Cartesian
-    # translation.  We will disable the jump threshold by setting it to 0.0,
-    # ignoring the check for infeasible jumps in joint space, which is sufficient
-    # for this tutorial.
-    (plan, fraction) = self.move_group.compute_cartesian_path(
-                                       waypoints,   # waypoints to follow
-                                       0.01,        # eef_step
-                                       0.0)         # jump_threshold
-
-    # Note: We are just planning, not asking move_group to actually move the robot yet:
-    return plan, fraction
-
+    return all_close(ee_pose_goal, current_pose, 0.01)
+  
     ## END_SUB_TUTORIAL
 
 
@@ -262,20 +231,6 @@ class SpotArmMoveGroupPythonInteface(object):
     # Publish
     self.display_trajectory_publisher.publish(display_trajectory)
 
-    ## END_SUB_TUTORIAL
-
-
-  def execute_plan(self, plan):
-    ## BEGIN_SUB_TUTORIAL execute_plan
-    ##
-    ## Executing a Plan
-    ## ^^^^^^^^^^^^^^^^
-    ## Use execute if you would like the robot to follow
-    ## the plan that has already been computed:
-    self.move_group.execute(plan, wait=True)
-
-    ## **Note:** The robot's current joint state must be within some tolerance of the
-    ## first waypoint in the `RobotTrajectory`_ or ``execute()`` will fail
     ## END_SUB_TUTORIAL
 
 
@@ -322,7 +277,7 @@ class SpotArmMoveGroupPythonInteface(object):
     ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     ## First, we will create a box in the planning scene at the location of the left finger:
     box_pose = geometry_msgs.msg.PoseStamped()
-    box_pose.header.frame_id = "panda_leftfinger"
+    box_pose.header.frame_id = "finger"
     box_pose.pose.orientation.w = 1.0
     box_pose.pose.position.z = 0.07 # slightly above the end effector
     self.box_name = "box"
@@ -386,53 +341,60 @@ def main():
   try:
     print ("")
     print ("----------------------------------------------------------")
-    print ("Welcome to the MoveIt MoveGroup Python Interface Tutorial")
+    print ("Welcome to the MoveIt MoveGroup Python Interface")
     print ("----------------------------------------------------------")
     print ("Press Ctrl-D to exit at any time")
     print ("")
-    print ("============ Press `Enter` to begin the tutorial by setting up the moveit_commander ...")
-    input()
-    tutorial = SpotArmMoveGroupPythonInteface()
+    print ("============ Press `Enter` to begin by setting up the moveit_commander ...")
+    raw_input()
+    tutorial = MoveGroupPythonInteface()
 
     print ("============ Press `Enter` to execute a movement using a joint state goal ...")
-    input()
-    tutorial.go_to_joint_state()
+    raw_input()
+    ## The Panda's zero configuration is at a `singularity <https://www.quora.com/Robotics-What-is-meant-by-kinematic-singularity>`_ so the first
+    ## thing we want to do is move it to a slightly better configuration.
+    # We can get the joint values from the group and adjust some of the values:
+    joint_goals = tutorial.get_joint_states()
+    joint_goals[0] = 2.617994
+    joint_goals[1] = 0
+    joint_goals[2] = 0
+    joint_goals[3] = 0
+    joint_goals[4] = 0
+    joint_goals[5] = 0
+    tutorial.go_to_joint_states(joint_goals)
 
-    print ("============ Press `Enter` to execute a movement using a pose goal ...")
-    input()
-    tutorial.go_to_pose_goal()
+    print ("============ Press `Enter` to compute a plan using an end-effector pose goal ...")
+    raw_input()
+    ee_pose_goal = tutorial.get_ee_pose()
+    ee_pose_goal.orientation.w = 1.0
+    ee_pose_goal.position.x = 0.4
+    ee_pose_goal.position.y = 0.1
+    ee_pose_goal.position.z = 0.4
+    plan = tutorial.plan_path_to_ee_pose(ee_pose_goal)
+    print(plan)
 
-    print ("============ Press `Enter` to plan and display a Cartesian path ...")
-    input()
-    cartesian_plan, fraction = tutorial.plan_cartesian_path()
+    print ("============ Press `Enter` to display saved plan ...")
+    raw_input()
+    tutorial.display_trajectory(plan)
 
-    print ("============ Press `Enter` to display a saved trajectory (this will replay the Cartesian path)  ...")
-    input()
-    tutorial.display_trajectory(cartesian_plan)
-
-    print ("============ Press `Enter` to execute a saved path ...")
-    input()
-    tutorial.execute_plan(cartesian_plan)
+    print ("============ Press `Enter` to execute saved plan ...")
+    raw_input()
+    tutorial.execute_plan(plan, ee_pose_goal)
 
     print ("============ Press `Enter` to add a box to the planning scene ...")
-    input()
+    raw_input()
     tutorial.add_box()
 
-    print ("============ Press `Enter` to attach a Box to the Panda robot ...")
-    input()
+    print ("============ Press `Enter` to attach a Box to the Spot arm robot ...")
+    raw_input()
     tutorial.attach_box()
 
-    print ("============ Press `Enter` to plan and execute a path with an attached collision object ...")
-    input()
-    cartesian_plan, fraction = tutorial.plan_cartesian_path(scale=-1)
-    tutorial.execute_plan(cartesian_plan)
-
-    print ("============ Press `Enter` to detach the box from the Panda robot ...")
-    input()
+    print ("============ Press `Enter` to detach the box from the Spot arm robot ...")
+    raw_input()
     tutorial.detach_box()
 
     print ("============ Press `Enter` to remove the box from the planning scene ...")
-    input()
+    raw_input()
     tutorial.remove_box()
 
     print ("============ Python tutorial demo complete!")

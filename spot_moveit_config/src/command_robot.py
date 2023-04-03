@@ -49,6 +49,8 @@ import geometry_msgs.msg
 from moveit_commander.conversions import pose_to_list
 # END_SUB_TUTORIAL
 
+PYTHON_VERSION = sys.version_info.major
+input if PYTHON_VERSION == 3 else raw_input
 
 def all_close(goal, actual, tolerance):
     """
@@ -177,7 +179,13 @@ class MoveGroupPythonInteface(object):
         self.move_group.set_pose_target(ee_pose_goal)
 
         # Now, we call the planner to compute the plan.
-        return self.move_group.plan()
+        if PYTHON_VERSION == 3:
+            plan_success, plan, planning_time, error_code = self.move_group.plan()
+            if not plan_success:
+                print("WARNING: Planner failed to plan a valid path for the requested pose target")
+            return plan
+        else:
+            return self.move_group.plan()
 
         # END_SUB_TUTORIAL
 
@@ -329,6 +337,8 @@ class MoveGroupPythonInteface(object):
 
 def main():
     try:
+        input_func = input if sys.version_info.major == 3 else raw_input
+        
         print("")
         print("----------------------------------------------------------")
         print("Welcome to the MoveIt MoveGroup Python Interface")
@@ -336,12 +346,12 @@ def main():
         print("Press Ctrl-D to exit at any time")
         print("")
         print("============ Press `Enter` to begin by setting up the moveit_commander ...")
-        raw_input()
+        input_func()
         tutorial = MoveGroupPythonInteface()
 
         print(
             "============ Press `Enter` to execute a movement using a joint state goal ...")
-        raw_input()
+        input_func()
         # The Panda's zero configuration is at a `singularity <https://www.quora.com/Robotics-What-is-meant-by-kinematic-singularity>`_ so the first
         # thing we want to do is move it to a slightly better configuration.
         # We can get the joint values from the group and adjust some of the values:
@@ -355,7 +365,7 @@ def main():
         tutorial.go_to_joint_states(joint_goals)
 
         print("============ Press `Enter` to compute a plan using an end-effector pose goal ...")
-        raw_input()
+        input_func()
         ee_pose_goal = tutorial.get_ee_pose()
         ee_pose_goal.orientation.w = 1.0
         ee_pose_goal.position.x = 0.4
@@ -365,27 +375,27 @@ def main():
         print(plan)
 
         print("============ Press `Enter` to display saved plan ...")
-        raw_input()
+        input_func()
         tutorial.display_trajectory(plan)
 
         print("============ Press `Enter` to execute saved plan ...")
-        raw_input()
+        input_func()
         tutorial.execute_plan(plan, ee_pose_goal)
 
         print("============ Press `Enter` to add a box to the planning scene ...")
-        raw_input()
+        input_func()
         tutorial.add_box()
 
         print("============ Press `Enter` to attach a Box to the Spot arm robot ...")
-        raw_input()
+        input_func()
         tutorial.attach_box()
 
         print("============ Press `Enter` to detach the box from the Spot arm robot ...")
-        raw_input()
+        input_func()
         tutorial.detach_box()
 
         print("============ Press `Enter` to remove the box from the planning scene ...")
-        raw_input()
+        input_func()
         tutorial.remove_box()
 
         print("============ Python tutorial demo complete!")

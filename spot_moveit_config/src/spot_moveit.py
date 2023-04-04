@@ -40,8 +40,9 @@ class SpotMoveit(object):
             try:
                 arm_joint_move = rospy.ServiceProxy(
                     "arm_joint_move", ArmJointMovement)
-                for joint_trajectory_point in plan.joint_trajectory.points:
-                    arm_joint_move(joint_trajectory_point.positions)
+                arm_joint_move(plan.joint_trajectory.points[4].positions)
+                # for joint_trajectory_point in plan.joint_trajectory.points:
+                #     arm_joint_move(joint_trajectory_point.positions)
             except rospy.ServiceException as e:
                 print("arm_joint_move service call failed: %s" % e)
 
@@ -57,7 +58,7 @@ class SpotInfoSubscriber(object):
         self._joint_states_received = threading.Event()
 
         self._joint_states_sub = rospy.Subscriber(
-            "joint_states", numpy_msg(JointState), self._joint_states_callback)
+            "/arm_joint_states", JointState, self._joint_states_callback)
         
     def run(self):
         rospy.spin()
@@ -71,8 +72,7 @@ class SpotInfoSubscriber(object):
         print("valid joint_states received")
         
     def _joint_states_callback(self, joint_states):
-        self._joint_states = joint_states.position[np.where(
-            joint_states.name == "arm_joint1")[0]:-1].tolist()
+        self._joint_states = joint_states.position
         self._joint_states_received.set()
 
 
@@ -88,6 +88,7 @@ def main():
     ee_pose_goal.position.x = 0.4
     ee_pose_goal.position.y = 0.1
     ee_pose_goal.position.z = 0.4
+    input()
     spot_moveit.move_to_goal(ee_pose_goal)
 
     spot_info_sub_thread.join()

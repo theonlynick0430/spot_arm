@@ -15,6 +15,6 @@ controller_list:
       - arm_gripper
 initial:  # Define initial robot poses.
   - group: spot_arm
-    pose: Zero
+    pose: ready
   - group: hand
     pose: close

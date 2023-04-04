@@ -83,8 +83,8 @@ class MoveGroupPythonInteface(object):
         # BEGIN_SUB_TUTORIAL setup
         ##
         # First initialize `moveit_commander`_ and a `rospy`_ node:
-        moveit_commander.roscpp_initialize(sys.argv)
-        rospy.init_node('move_group_python_interface', anonymous=True)
+        # moveit_commander.roscpp_initialize(sys.argv)
+        # rospy.init_node('move_group_python_interface', anonymous=True)
 
         # Instantiate a `RobotCommander`_ object. Provides information such as the robot's
         # kinematic model and the robot's current joint states

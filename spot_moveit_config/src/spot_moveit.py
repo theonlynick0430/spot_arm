@@ -9,6 +9,7 @@ from spot_msgs.srv import (
     ArmJointMovementRequest,
 )
 from command_robot import MoveGroupPythonInteface
+import pdb
 
 
 class SpotMoveit(object):
@@ -21,7 +22,11 @@ class SpotMoveit(object):
 
         self.planner = MoveGroupPythonInteface()
 
+        pdb.set_trace()
+
         self.spot_info_sub.wait_for_valid_joint_states()
+        print("Current joint states:")
+        print(self.spot_info_sub.get_joint_states())
         self.planner.go_to_joint_states(self.spot_info_sub.get_joint_states())
 
         print("waiting for arm_joint_move srv ...")
@@ -40,7 +45,7 @@ class SpotMoveit(object):
             try:
                 arm_joint_move = rospy.ServiceProxy(
                     "arm_joint_move", ArmJointMovement)
-                arm_joint_move(plan.joint_trajectory.points[4].positions)
+                arm_joint_move(plan.joint_trajectory.points[0].positions)
                 # for joint_trajectory_point in plan.joint_trajectory.points:
                 #     arm_joint_move(joint_trajectory_point.positions)
             except rospy.ServiceException as e:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2008, Willow Garage, Inc.
@@ -66,11 +66,10 @@ class Dummy(object):
     def __init__(self) -> None:
         rospy.init_node('Dummy', anonymous=True)
         self.pub = rospy.Publisher('/arm_joint_states', numpy_msg(JointState), queue_size=100)
-        rospy.Subscriber('/joint_states', numpy_msg(JointState), self.callback)
+        rospy.Subscriber('/joint_states', numpy_msg(JointState), self.callback_js)
         rospy.spin()
 
-
-    def callback(self, data):
+    def callback_js(self, data):
         msg = copy.deepcopy(data)
         # print('here')
         # print(data.name[-7:-1])

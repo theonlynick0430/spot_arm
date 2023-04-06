@@ -47,6 +47,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from moveit_commander.conversions import pose_to_list
+import pdb
 # END_SUB_TUTORIAL
 
 PYTHON_VERSION = sys.version_info.major
@@ -89,7 +90,7 @@ class MoveGroupPythonInteface(object):
         # Instantiate a `RobotCommander`_ object. Provides information such as the robot's
         # kinematic model and the robot's current joint states
         robot = moveit_commander.RobotCommander()
-
+        pdb.set_trace()
         # Instantiate a `PlanningSceneInterface`_ object.  This provides a remote interface
         # for getting, setting, and updating the robot's internal understanding of the
         # surrounding world:
@@ -131,7 +132,7 @@ class MoveGroupPythonInteface(object):
         # Sometimes for debugging it is useful to print the entire state of the
         # robot:
         print("============ Printing robot state")
-        print(robot.get_current_state())
+        # print(robot.get_current_state())
         print("")
         # END_SUB_TUTORIAL
 

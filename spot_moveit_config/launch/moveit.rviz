@@ -351,7 +351,7 @@ Visualization Manager:
         Start State Alpha: 1
         Start State Color: 0; 255; 0
       Planning Scene Topic: move_group/monitored_planning_scene
-      Robot Description: robot_description
+      Robot Description: /spot_arm/robot_description
       Scene Geometry:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
@@ -648,7 +648,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Fixed Frame: world
   Name: root
   Tools:
     - Class: rviz/Interact

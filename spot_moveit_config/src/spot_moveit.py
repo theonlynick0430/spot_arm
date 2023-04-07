@@ -9,7 +9,6 @@ from spot_msgs.srv import (
     ArmJointMovementRequest,
 )
 from command_robot import MoveGroupPythonInteface
-import pdb
 
 
 class SpotMoveit(object):
@@ -22,11 +21,7 @@ class SpotMoveit(object):
 
         self.planner = MoveGroupPythonInteface()
 
-        pdb.set_trace()
-
         self.spot_info_sub.wait_for_valid_joint_states()
-        print("Current joint states:")
-        print(self.spot_info_sub.get_joint_states())
         self.planner.go_to_joint_states(self.spot_info_sub.get_joint_states())
 
         print("waiting for arm_joint_move srv ...")
@@ -93,6 +88,7 @@ def main():
     ee_pose_goal.position.x = 0.4
     ee_pose_goal.position.y = 0.1
     ee_pose_goal.position.z = 0.4
+    print("Press enter to move to specified goal")
     input()
     spot_moveit.move_to_goal(ee_pose_goal)
 

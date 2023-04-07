@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Software License Agreement (BSD License)
 #
@@ -81,6 +81,7 @@ class MoveGroupPythonInteface(object):
     def __init__(self):
         super(MoveGroupPythonInteface, self).__init__()
 
+        robot_description = "/spot_arm/robot_description"
         # BEGIN_SUB_TUTORIAL setup
         ##
         # First initialize `moveit_commander`_ and a `rospy`_ node:
@@ -89,8 +90,8 @@ class MoveGroupPythonInteface(object):
 
         # Instantiate a `RobotCommander`_ object. Provides information such as the robot's
         # kinematic model and the robot's current joint states
-        robot = moveit_commander.RobotCommander()
-        pdb.set_trace()
+        robot = moveit_commander.RobotCommander(robot_description=robot_description)
+        # pdb.set_trace()
         # Instantiate a `PlanningSceneInterface`_ object.  This provides a remote interface
         # for getting, setting, and updating the robot's internal understanding of the
         # surrounding world:
@@ -103,7 +104,7 @@ class MoveGroupPythonInteface(object):
         # arm planning group.
         # This interface can be used to plan and execute motions:
         group_name = "spot_arm"
-        move_group = moveit_commander.MoveGroupCommander(group_name)
+        move_group = moveit_commander.MoveGroupCommander(group_name, robot_description=robot_description)
 
         # Create a `DisplayTrajectory`_ ROS publisher which is used to display
         # trajectories in Rviz:

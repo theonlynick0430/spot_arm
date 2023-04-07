@@ -39,9 +39,11 @@
   -->
 
   <arg name="load_robot_description" default="true" />
+  <arg name="robot_description" default="robot_description" />
   <!-- load URDF, SRDF and joint_limits configuration -->
   <include file="$(find spot_moveit_config)/launch/planning_context.launch">
     <arg name="load_robot_description" value="$(arg load_robot_description)" />
+    <arg name="robot_description" value="$(arg robot_description)" />
   </include>
 
   <!-- Planning Functionality -->
@@ -65,8 +67,13 @@
   </include>
 
   <!-- Start the actual move_group node/action server -->
-  <node name="move_group" launch-prefix="$(arg launch_prefix)" pkg="moveit_ros_move_group" type="move_group" respawn="false" output="screen" args="joint_states:=/arm_joint_states tf:=/arm_tf tf_static:=/arm_tf_static $(arg command_args)">
+  <node name="move_group" launch-prefix="$(arg launch_prefix)" pkg="moveit_ros_move_group" type="move_group" respawn="false" output="screen" args="$(arg command_args)">
     <!-- Set the display variable, in case OpenGL code is used internally -->
+    <remap from="robot_description" to="$(arg robot_description)"/>
+    <remap from="joint_states" to="/spot_arm/joint_states"/>
+    <remap from="tf" to="/spot_arm/tf"/>
+    <remap from="tf_static" to="/spot_arm/tf_static"/>
+
     <env name="DISPLAY" value="$(optenv DISPLAY :0)" />
 
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>

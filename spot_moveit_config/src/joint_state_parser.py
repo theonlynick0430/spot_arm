@@ -38,41 +38,21 @@
 
 import rospy
 import numpy as np
-from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import Twist
 from sensor_msgs.msg import JointState
 from rospy.numpy_msg import numpy_msg
 import copy
 
-    # rostopic pub /spot/go_to_pose geometry_msgs/PoseStamped "header:
-    #   seq: 0
-    #   stamp:
-    #     secs: 0
-    #     nsecs: 0
-    #   frame_id: 'body'
-    # pose:
-    #   position:
-    #     x: 0.5
-    #     y: 0.0
-    #     z: 0.0
-    #   orientation:
-    #     x: 0.0
-    #     y: 0.0
-    #     z: 0.0
-    #     w: 1"
 
-class Dummy(object):
+class JointStateParser(object):
 
-    def __init__(self) -> None:
-        rospy.init_node('Dummy', anonymous=True)
-        self.pub = rospy.Publisher('/arm_joint_states', numpy_msg(JointState), queue_size=100)
-        rospy.Subscriber('/joint_states', numpy_msg(JointState), self.callback_js)
+    def __init__(self):
+        rospy.init_node('joint_state_parser', anonymous=True)
+        self.pub = rospy.Publisher('/spot_arm/joint_states', numpy_msg(JointState), queue_size=100)
+        rospy.Subscriber('/joint_states', numpy_msg(JointState), self.callback)
         rospy.spin()
 
-    def callback_js(self, data):
+    def callback(self, data):
         msg = copy.deepcopy(data)
-        # print('here')
-        # print(data.name[-7:-1])
         msg.name = data.name[-7:]
         msg.position = data.position[-7:]
         msg.velocity = data.velocity[-7:]
@@ -80,24 +60,8 @@ class Dummy(object):
         self.pub.publish(msg)
 
 
-def fake_js():
-    rospy.init_node('Dummy2', anonymous=True)
-    pub = rospy.Publisher('/joint_states', numpy_msg(JointState), queue_size=1)
-    rate = rospy.Rate(10) # 10hz
-    while not rospy.is_shutdown():
-        # That command will have spot rotate on the spot at 0.3 radians/second. 
-        js = JointState()
-        js.name = ['arm_joint1', 'arm_joint2', 'arm_joint3', 'arm_joint4', 'arm_joint5', 'arm_joint6', 'arm_gripper']
-        js.position = np.zeros(7)
-        js.velocity = np.zeros(7)
-        js.effort = np.zeros(7)
-        pub.publish(js)
-        rate.sleep()
-
-
 if __name__ == '__main__':
     try:
-        d = Dummy()
-        # fake_js()
+        parser = JointStateParser()
     except rospy.ROSInterruptException:
         pass

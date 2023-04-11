@@ -47,9 +47,6 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from moveit_commander.conversions import pose_to_list
-import pdb
-import threading
-from sensor_msgs.msg import JointState
 # END_SUB_TUTORIAL
 
 PYTHON_VERSION = sys.version_info.major
@@ -83,13 +80,15 @@ class MoveGroupPythonInteface(object):
     def __init__(self):
         super(MoveGroupPythonInteface, self).__init__()
 
-        robot_description = "/spot_arm/robot_description"
         # BEGIN_SUB_TUTORIAL setup
         ##
         # First initialize `moveit_commander`_ and a `rospy`_ node:
-        remaps = ['joint_states:=/spot_arm/joint_states', 'tf:=/spot_arm/tf', 'tf_static:=/spot_arm/tf_static', 'robot_description:=/spot_arm/robot_description']
+        robot_description = "/spot_arm/robot_description"
+        remaps = ['joint_states:=/spot_arm/joint_states',
+                'tf:=/spot_arm/tf', 
+                'tf_static:=/spot_arm/tf_static']
         moveit_commander.roscpp_initialize(remaps)
-        rospy.init_node('move_group_python_interface', anonymous=True)
+        rospy.init_node('/spot_arm/moveit', anonymous=True)
 
         # Instantiate a `RobotCommander`_ object. Provides information such as the robot's
         # kinematic model and the robot's current joint states
@@ -114,13 +113,6 @@ class MoveGroupPythonInteface(object):
         display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
                                                        moveit_msgs.msg.DisplayTrajectory,
                                                        queue_size=20)
-
-        # self._joint_states = None
-
-        # self._joint_states_received = threading.Event()
-
-        # self._joint_states_sub = rospy.Subscriber(
-        #     "/spot_arm/joint_states", JointState, self._joint_states_callback)
         # END_SUB_TUTORIAL
 
         # BEGIN_SUB_TUTORIAL basic_info
@@ -142,7 +134,7 @@ class MoveGroupPythonInteface(object):
         # Sometimes for debugging it is useful to print the entire state of the
         # robot:
         print("============ Printing robot state")
-        # print(robot.get_current_state())
+        print(robot.get_current_state())
         print("")
         # END_SUB_TUTORIAL
 
@@ -156,23 +148,8 @@ class MoveGroupPythonInteface(object):
         self.eef_link = eef_link
         self.group_names = group_names
 
-    # def run(self):
-    #     rospy.spin()
-
-    # def get_joint_states(self):
-    #     return self._joint_states
-
-    # def wait_for_valid_joint_states(self):
-    #     print("waiting for valid joint states...")
-    #     self._joint_states_received.wait()
-    #     print("valid joint_states received")
-        
-    # def _joint_states_callback(self, joint_states):
-    #     self._joint_states = joint_states.position
-    #     self._joint_states_received.set()
-
-    # def get_joint_states(self):
-    #     return self.move_group.get_current_joint_values()
+    def get_joint_states(self):
+        return self.move_group.get_current_joint_values()
 
     def get_ee_pose(self):
         return self.move_group.get_current_pose().pose

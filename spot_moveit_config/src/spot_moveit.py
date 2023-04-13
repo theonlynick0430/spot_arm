@@ -2,6 +2,7 @@ import rospy
 from spot_msgs.srv import (
     ArmJointMovement,
 )
+from spot_msgs.msg import JointTarget
 from command_robot import MoveGroupPythonInteface
 
 
@@ -29,8 +30,12 @@ class SpotMoveit(object):
             try:
                 arm_joint_move = rospy.ServiceProxy(
                     "/spot/arm_joint_move", ArmJointMovement)
+                joint_targets = []
                 for joint_trajectory_point in plan.joint_trajectory.points:
-                    arm_joint_move(joint_trajectory_point.positions)
+                    joint_target = JointTarget()
+                    joint_target.positions = joint_trajectory_point.positions
+                    joint_targets.append(joint_target)
+                arm_joint_move(joint_targets)
             except rospy.ServiceException as e:
                 print("arm_joint_move service call failed: %s" % e)   
 
